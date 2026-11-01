@@ -1,7 +1,10 @@
-
 # ✈️ Flight Price Prediction
 
 A simple Machine Learning project that predicts flight ticket prices.
+
+## 🌐 Live Demo
+
+**Live Website:** https://flight-price-prediction-ivuy.onrender.com
 
 ## About the Project
 
