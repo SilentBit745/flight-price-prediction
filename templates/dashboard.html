@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flight Price Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+    <h1>Flight Price Dashboard</h1>
+    <p>Flight data analysis</p>
+
+    <h2>Average Price by Airline</h2>
+    <img src="/airline_prices.png" width="100%">
+
+    <h2>Price by Number of Stops</h2>
+    <img src="/stops_prices.png" width="100%">
+
+    <h2>Flight Price Distribution</h2>
+    <img src="/price_distribution.png" width="100%">
+
+    <a href="/">Back to Prediction</a>
+
+</div>
+</body>
+</html>

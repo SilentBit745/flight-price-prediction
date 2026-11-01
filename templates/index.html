@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flight Price Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<div class="container">
+
+    <h1>✈ Flight Price Prediction</h1>
+    <p>Find your estimated flight ticket price</p>
+
+    <form method="POST">
+
+        <label>Airline</label>
+        <select name="airline" required>
+            {% for item in airlines %}
+            <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Source</label>
+        <select name="source" required>
+            {% for item in sources %}
+            <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Destination</label>
+        <select name="destination" required>
+            {% for item in destinations %}
+            <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Journey Day</label>
+        <input type="number" name="day" min="1" max="31" required>
+
+        <label>Journey Month</label>
+        <input type="number" name="month" min="1" max="12" required>
+
+        <label>Departure Hour</label>
+        <input type="number" name="dep_hour" min="0" max="23" required>
+
+        <label>Arrival Hour</label>
+        <input type="number" name="arr_hour" min="0" max="23" required>
+
+        <label>Flight Duration (Minutes)</label>
+        <input type="number" name="duration" min="1" required>
+
+        <label>Number of Stops</label>
+        <select name="stops" required>
+            <option value="0">Non-stop</option>
+            <option value="1">1 Stop</option>
+            <option value="2">2 Stops</option>
+            <option value="3">3 Stops</option>
+            <option value="4">4 Stops</option>
+        </select>
+
+        <button type="submit">Predict Price</button>
+
+    </form>
+
+    {% if error %}
+        <h3 style="color:red">{{ error }}</h3>
+    {% endif %}
+
+    {% if price is not none %}
+        <div class="result">
+            <h2>Estimated Flight Price</h2>
+            <h1>₹{{ price }}</h1>
+        </div>
+    {% endif %}
+
+</div>
+</body>
+</html>
