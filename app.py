@@ -10,6 +10,7 @@ app = Flask(__name__)
 
 # Load model and dataset
 model = joblib.load("flight_price_model.pkl")
+
 data = pd.read_excel("dataset/Data_Train.xlsx")
 
 airlines = sorted(data["Airline"].dropna().unique())
@@ -24,6 +25,7 @@ def home():
     error = None
 
     if request.method == "POST":
+
         try:
             airline = request.form.get("airline", "").strip()
             source = request.form.get("source", "").strip()
@@ -31,76 +33,83 @@ def home():
 
             day = int(request.form.get("day", "0"))
             month = int(request.form.get("month", "0"))
+
             dep_hour = int(request.form.get("dep_hour", "-1"))
             arr_hour = int(request.form.get("arr_hour", "-1"))
-            duration = int(request.form.get("duration", "0"))
+
+            duration_hours = int(
+                request.form.get("duration_hours", "-1")
+            )
+
+            duration_minutes = int(
+                request.form.get("duration_minutes", "-1")
+            )
+
             stops = int(request.form.get("stops", "-1"))
 
-            # Validate airline and route
+            # Convert duration to minutes
+            duration = duration_hours * 60 + duration_minutes
+
+            # Validate airline and cities
             if airline not in airlines:
-                raise ValueError("Please select a valid airline.")
+                raise ValueError("Select a valid airline.")
 
             if source not in sources or destination not in destinations:
-                raise ValueError("Please select valid cities.")
+                raise ValueError("Select valid cities.")
 
             if source == destination:
-                raise ValueError("Source and destination must be different.")
+                raise ValueError(
+                    "Source and destination must be different."
+                )
 
             # Validate date
             if not 1 <= month <= 12:
-                raise ValueError("Month must be between 1 and 12.")
+                raise ValueError("Enter a valid month.")
 
             if not 1 <= day <= calendar.monthrange(2024, month)[1]:
-                raise ValueError("Invalid day for the selected month.")
+                raise ValueError("Enter a valid journey day.")
 
             # Validate hours
             if not 0 <= dep_hour <= 23:
-                raise ValueError("Departure hour must be between 0 and 23.")
+                raise ValueError("Departure hour must be 0 to 23.")
 
             if not 0 <= arr_hour <= 23:
-                raise ValueError("Arrival hour must be between 0 and 23.")
+                raise ValueError("Arrival hour must be 0 to 23.")
 
             # Validate duration
-            if not 1 <= duration <= 3000:
-                raise ValueError("Duration must be between 1 and 3000 minutes.")
+            if not 0 <= duration_hours <= 47:
+                raise ValueError("Duration hours must be 0 to 47.")
+
+            if not 0 <= duration_minutes <= 59:
+                raise ValueError("Duration minutes must be 0 to 59.")
+
+            if not 5 <= duration <= 2860:
+                raise ValueError("Enter a valid flight duration.")
 
             # Validate stops
             if not 0 <= stops <= 4:
-                raise ValueError("Number of stops must be between 0 and 4.")
-
-            # Check whether arrival hour matches duration.
-            # Since minutes are not collected, allow either adjacent hour.
-            expected_arrival = {
-                (dep_hour + duration // 60) % 24,
-                (dep_hour + math.ceil(duration / 60)) % 24
-            }
-
-            if arr_hour not in expected_arrival:
-                raise ValueError(
-                    "Arrival time does not match the flight duration. "
-                    "Please check your details."
-                )
+                raise ValueError("Stops must be between 0 and 4.")
 
             # Prepare model input
             values = {
                 "Airline": airline,
                 "Source": source,
                 "Destination": destination,
-                "Additional_Info": "No info",
                 "Day": day,
                 "Month": month,
                 "Dep_Hour": dep_hour,
-                "Dep_Min": 0,
                 "Arr_Hour": arr_hour,
-                "Arr_Min": 0,
                 "Duration_Min": duration,
                 "Stops": stops
             }
 
-            result = float(model.predict(pd.DataFrame([values]))[0])
+            # Predict price
+            result = float(
+                model.predict(pd.DataFrame([values]))[0]
+            )
 
             if not math.isfinite(result):
-                raise ValueError("Unable to generate a valid prediction.")
+                raise ValueError("Prediction could not be generated.")
 
             price = round(max(0, result), 2)
 
