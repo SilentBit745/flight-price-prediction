@@ -2,16 +2,17 @@
 from flask import Flask, render_template, request, send_file
 import joblib
 import pandas as pd
+import calendar
 
 app = Flask(__name__)
 
+# Load model and dataset
 model = joblib.load("flight_price_model.pkl")
 data = pd.read_excel("dataset/Data_Train.xlsx")
 
 airlines = sorted(data["Airline"].dropna().unique())
 sources = sorted(data["Source"].dropna().unique())
 destinations = sorted(data["Destination"].dropna().unique())
-
 
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -21,56 +22,75 @@ def home():
 
     if request.method == "POST":
         try:
+            # Get form values
+            airline = request.form.get("airline", "")
+            source = request.form.get("source", "")
+            destination = request.form.get("destination", "")
+
+            day = int(request.form.get("day", "0"))
+            month = int(request.form.get("month", "0"))
+            dep_hour = int(request.form.get("dep_hour", "-1"))
+            arr_hour = int(request.form.get("arr_hour", "-1"))
+            duration = int(request.form.get("duration", "0"))
+            stops = int(request.form.get("stops", "-1"))
+
+            # Validate airline and cities
+            if airline not in airlines:
+                raise ValueError("Please select a valid airline.")
+
+            if source not in sources:
+                raise ValueError("Please select a valid source.")
+
+            if destination not in destinations:
+                raise ValueError("Please select a valid destination.")
+
+            if source == destination:
+                raise ValueError("Source and destination must be different.")
+
+            # Validate date
+            if not 1 <= month <= 12:
+                raise ValueError("Month must be between 1 and 12.")
+
+            if not 1 <= day <= calendar.monthrange(2024, month)[1]:
+                raise ValueError("Please enter a valid day for the selected month.")
+
+            # Validate hours
+            if not 0 <= dep_hour <= 23:
+                raise ValueError("Departure hour must be between 0 and 23.")
+
+            if not 0 <= arr_hour <= 23:
+                raise ValueError("Arrival hour must be between 0 and 23.")
+
+            # Validate duration
+            if not 1 <= duration <= 3000:
+                raise ValueError("Duration must be between 1 and 3000 minutes.")
+
+            # Validate stops
+            if not 0 <= stops <= 4:
+                raise ValueError("Number of stops must be between 0 and 4.")
+
+            # Prepare model input
             values = {
-                "Airline": request.form["airline"],
-                "Source": request.form["source"],
-                "Destination": request.form["destination"],
+                "Airline": airline,
+                "Source": source,
+                "Destination": destination,
                 "Additional_Info": "No info",
-                "Day": int(request.form["day"]),
-                "Month": int(request.form["month"]),
-                "Dep_Hour": int(request.form["dep_hour"]),
+                "Day": day,
+                "Month": month,
+                "Dep_Hour": dep_hour,
                 "Dep_Min": 0,
-                "Arr_Hour": int(request.form["arr_hour"]),
+                "Arr_Hour": arr_hour,
                 "Arr_Min": 0,
-                "Duration_Min": int(request.form["duration"]),
-                "Stops": int(request.form["stops"])
+                "Duration_Min": duration,
+                "Stops": stops
             }
 
-            if not 1 <= values["Day"] <= 31:
-                raise ValueError("Day must be 1 to 31")
-
-            if not 1 <= values["Month"] <= 12:
-                raise ValueError("Month must be 1 to 12")
-
-            if not 0 <= values["Dep_Hour"] <= 23:
-                raise ValueError("Departure hour must be 0 to 23")
-
-            if not 0 <= values["Arr_Hour"] <= 23:
-                raise ValueError("Arrival hour must be 0 to 23")
-
-            if values["Duration_Min"] <= 0:
-                raise ValueError("Duration must be greater than 0")
-
-            if values["Source"] == values["Destination"]:
-                raise ValueError("Source and destination must be different")
-
-            if values["Airline"] not in airlines:
-                raise ValueError("Invalid airline")
-
-            if values["Source"] not in sources:
-                raise ValueError("Invalid source")
-
-            if values["Destination"] not in destinations:
-                raise ValueError("Invalid destination")
-
-            if not 0 <= values["Stops"] <= 4:
-                raise ValueError("Invalid number of stops")
-
+            # Predict price
             result = model.predict(pd.DataFrame([values]))[0]
             price = round(max(0, result), 2)
 
-        except ValueError as e:
-            error = str(e)
+        except (ValueError, TypeError):
+            error = "Please enter valid flight details."
 
     return render_template(
         "index.html",
