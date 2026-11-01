@@ -3,6 +3,8 @@ from flask import Flask, render_template, request, send_file
 import joblib
 import pandas as pd
 import calendar
+import os
+import math
 
 app = Flask(__name__)
 
@@ -14,6 +16,7 @@ airlines = sorted(data["Airline"].dropna().unique())
 sources = sorted(data["Source"].dropna().unique())
 destinations = sorted(data["Destination"].dropna().unique())
 
+
 @app.route("/", methods=["GET", "POST"])
 def home():
 
@@ -22,10 +25,9 @@ def home():
 
     if request.method == "POST":
         try:
-            # Get form values
-            airline = request.form.get("airline", "")
-            source = request.form.get("source", "")
-            destination = request.form.get("destination", "")
+            airline = request.form.get("airline", "").strip()
+            source = request.form.get("source", "").strip()
+            destination = request.form.get("destination", "").strip()
 
             day = int(request.form.get("day", "0"))
             month = int(request.form.get("month", "0"))
@@ -34,15 +36,12 @@ def home():
             duration = int(request.form.get("duration", "0"))
             stops = int(request.form.get("stops", "-1"))
 
-            # Validate airline and cities
+            # Validate airline and route
             if airline not in airlines:
                 raise ValueError("Please select a valid airline.")
 
-            if source not in sources:
-                raise ValueError("Please select a valid source.")
-
-            if destination not in destinations:
-                raise ValueError("Please select a valid destination.")
+            if source not in sources or destination not in destinations:
+                raise ValueError("Please select valid cities.")
 
             if source == destination:
                 raise ValueError("Source and destination must be different.")
@@ -52,7 +51,7 @@ def home():
                 raise ValueError("Month must be between 1 and 12.")
 
             if not 1 <= day <= calendar.monthrange(2024, month)[1]:
-                raise ValueError("Please enter a valid day for the selected month.")
+                raise ValueError("Invalid day for the selected month.")
 
             # Validate hours
             if not 0 <= dep_hour <= 23:
@@ -68,6 +67,19 @@ def home():
             # Validate stops
             if not 0 <= stops <= 4:
                 raise ValueError("Number of stops must be between 0 and 4.")
+
+            # Check whether arrival hour matches duration.
+            # Since minutes are not collected, allow either adjacent hour.
+            expected_arrival = {
+                (dep_hour + duration // 60) % 24,
+                (dep_hour + math.ceil(duration / 60)) % 24
+            }
+
+            if arr_hour not in expected_arrival:
+                raise ValueError(
+                    "Arrival time does not match the flight duration. "
+                    "Please check your details."
+                )
 
             # Prepare model input
             values = {
@@ -85,12 +97,18 @@ def home():
                 "Stops": stops
             }
 
-            # Predict price
-            result = model.predict(pd.DataFrame([values]))[0]
+            result = float(model.predict(pd.DataFrame([values]))[0])
+
+            if not math.isfinite(result):
+                raise ValueError("Unable to generate a valid prediction.")
+
             price = round(max(0, result), 2)
 
-        except (ValueError, TypeError):
-            error = "Please enter valid flight details."
+        except (ValueError, TypeError) as e:
+            error = str(e)
+
+        except Exception:
+            error = "Something went wrong. Please try again."
 
     return render_template(
         "index.html",
@@ -116,7 +134,7 @@ def graphs(filename):
         "price_distribution.png"
     ]
 
-    if filename in allowed:
+    if filename in allowed and os.path.isfile(filename):
         return send_file(filename)
 
     return "File not found", 404

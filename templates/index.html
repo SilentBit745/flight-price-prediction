@@ -53,12 +53,14 @@
         <input type="number" name="month" min="1" max="12"
             value="{{ request.form.get('month', '') }}" required>
 
-        <label>Departure Hour</label>
+        <label>Departure Hour (24-hour format)</label>
         <input type="number" name="dep_hour" min="0" max="23"
+            placeholder="Example: 16 for 4 PM"
             value="{{ request.form.get('dep_hour', '') }}" required>
 
-        <label>Arrival Hour</label>
+        <label>Arrival Hour (24-hour format)</label>
         <input type="number" name="arr_hour" min="0" max="23"
+            placeholder="Example: 20 for 8 PM"
             value="{{ request.form.get('arr_hour', '') }}" required>
 
         <label>Flight Duration (Minutes)</label>
