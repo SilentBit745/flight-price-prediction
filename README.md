@@ -1,36 +1,35 @@
-# ✈️ Flight Price Prediction
+# Flight Price Prediction
 
-A simple Machine Learning project that predicts flight ticket prices.
+A simple Machine Learning project to predict flight ticket prices.
 
 ## 🌐 Live Demo
 
-**Live Website:** https://flight-price-prediction-ivuy.onrender.com
+**Website:** https://flight-price-prediction-ivuy.onrender.com
 
-## About the Project
+## About
 
-This project estimates flight ticket prices based on flight details such as airline, source, destination, journey date, departure time, arrival time, duration and number of stops.
+This project predicts flight prices using airline, route, date, time, duration, and number of stops.
 
 ## Features
 
-- Predict flight ticket prices
-- Select different airlines
-- Choose source and destination
+- Predict flight prices
+- Select airline and route
 - Enter journey details
-- Input validation
-- Data analysis dashboard
-- Price visualization graphs
+- Check input values
+- View data analysis and graphs
+- Use the website online
 
 ## How It Works
 
-1. The project uses a flight price dataset.
-2. The data is cleaned and prepared.
-3. Three Machine Learning models are trained.
-4. Their performance is compared.
-5. Random Forest is selected as the best model.
-6. The trained model is saved using Joblib.
-7. Flask loads the model and displays a prediction on the website.
+1. Load the flight dataset.
+2. Clean and prepare the data.
+3. Train three ML models.
+4. Compare their results.
+5. Select the best model.
+6. Save the model using Pickle.
+7. Use Flask to show predictions.
 
-## Machine Learning Models
+## ML Models
 
 - Linear Regression
 - Decision Tree
@@ -38,70 +37,56 @@ This project estimates flight ticket prices based on flight details such as airl
 
 ## Model Results
 
-| Model | MAE | R² Score |
-|---|---:|---:|
-| Linear Regression | 1777.48 | 0.689 |
-| Decision Tree | 678.25 | 0.896 |
-| Random Forest | 624.61 | 0.902 |
+| Model | MAE (₹) | RMSE (₹) | R² |
+|---|---:|---:|---:|
+| Linear Regression | 2,022.64 | 2,977.74 | 0.575 |
+| Decision Tree | 1,325.27 | 2,224.17 | 0.763 |
+| Random Forest | **1,174.39** | **1,900.80** | **0.827** |
 
-Random Forest performed best among the three models.
+### Cross-Validation Results
+
+| Model | CV MAE (₹) |
+|---|---:|
+| Linear Regression | 2,003.08 |
+| Decision Tree | 1,386.98 |
+| Random Forest | **1,238.05** |
+
+**Random Forest** performed best.
+
+## Dataset
+
+[Flight Fare Prediction Dataset – Kaggle](https://www.kaggle.com/datasets/nikhilmittal/flight-fare-prediction-mh)
+
+- Training rows: 10,683
+- Test rows: 2,671
+- Duplicate rows removed: 220
 
 ## Technologies Used
 
 - Python
-- Pandas
-- NumPy
+- Pandas and NumPy
 - Scikit-learn
-- Matplotlib
-- Seaborn
+- Matplotlib and Seaborn
 - Flask
-- HTML
-- CSS
-- Joblib
+- HTML and CSS
+- Git and GitHub
+- Render
 
 ## Project Structure
 
-- `app.py` – Runs the Flask website.
+- `app.py` – Runs the website.
 - `train_model.py` – Trains and compares models.
-- `analysis.py` – Creates data visualizations.
+- `analysis.py` – Creates graphs.
 - `check_data.py` – Checks the dataset.
-- `flight_price_model.pkl` – Saved trained model.
-- `dataset/` – Contains the flight dataset.
-- `templates/` – Contains HTML pages.
-- `static/` – Contains CSS styling.
+- `flight_price_model.pkl` – Saved model.
+- `model_comparison.csv` – Model results.
+- `dataset/` – Dataset files.
+- `templates/` – HTML files.
+- `static/` – CSS and graphs.
 
 ## How to Run
 
-**1. Install the required packages**
+### 1. Install Packages
 
 ```bash
 pip install -r requirements.txt
-```
-
-**2. Train the model**
-
-```bash
-python train_model.py
-```
-
-**3. Start the website**
-
-```bash
-python app.py
-```
-
-**4. Open in your browser**
-
-http://127.0.0.1:5000
-
-**Dashboard:**
-
-http://127.0.0.1:5000/dashboard
-
-## Model Limitations
-
-- Predictions are estimates, not guaranteed ticket prices.
-- Results depend on the training dataset.
-- The project does not fetch live airline prices.
-
-## 
